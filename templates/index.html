@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heladería</title>
+</head>
+<body>
+    <h1>Ingredientes</h1>
+    <ul>
+        {% for ingrediente in ingredientes %}
+            <li>{{ ingrediente.nombre }} - {{ ingrediente.precio }} - {{ ingrediente.calorias }} - {{ ingrediente.inventario }} - {{ ingrediente.es_vegetariano }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Productos</h1>
+    <ul>
+        {% for producto in productos %}
+            <li>{{ producto.nombre }} - {{ producto.precio_publico }} - {{ producto.rentabilidad }}</li>
+        {% endfor %}
+    </ul>
+
+    <h1>Producto Más Rentable</h1>
+    <p>{{ producto_mas_rentable.nombre }}</p>
+</body>
+</html>
