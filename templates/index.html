@@ -4,23 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Heladería</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h1>Ingredientes</h1>
-    <ul>
-        {% for ingrediente in ingredientes %}
-            <li>{{ ingrediente.nombre }} - {{ ingrediente.precio }} - {{ ingrediente.calorias }} - {{ ingrediente.inventario }} - {{ ingrediente.es_vegetariano }}</li>
-        {% endfor %}
-    </ul>
-
-    <h1>Productos</h1>
-    <ul>
+    <h1>Bienvenido a la Heladería</h1>
+    <p>Explora nuestro menú de deliciosos helados:</p>
+    <div class="product-list">
         {% for producto in productos %}
-            <li>{{ producto.nombre }} - {{ producto.precio_publico }} - {{ producto.rentabilidad }}</li>
+        <div class="product">
+            <h2>{{ producto[0] }}</h2>
+            <h3>Ingredientes:</h3>
+            <ul>
+                {% for ingrediente in producto[1].split(',') %}
+                <li>{{ ingrediente }}</li>
+                {% endfor %}
+            </ul>
+        </div>
         {% endfor %}
-    </ul>
-
-    <h1>Producto Más Rentable</h1>
-    <p>{{ producto_mas_rentable.nombre }}</p>
+    </div>
+    <a href="{{ url_for('seleccionar_ingredientes') }}">Seleccionar Ingredientes</a>
 </body>
 </html>
