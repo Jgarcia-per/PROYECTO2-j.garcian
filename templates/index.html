@@ -12,13 +12,16 @@
     <div class="product-list">
         {% for producto in productos %}
         <div class="product">
-            <h2>{{ producto[0] }}</h2>
+            <h2>{{ producto[1] }}</h2>
             <h3>Ingredientes:</h3>
             <ul>
-                {% for ingrediente in producto[1].split(',') %}
+                {% for ingrediente in producto[2].split(',') %}
                 <li>{{ ingrediente }}</li>
                 {% endfor %}
             </ul>
+            <form action="{{ url_for('vender_route', producto_id=producto[0]) }}" method="POST">
+                <button type="submit">Vender</button>
+            </form>
         </div>
         {% endfor %}
     </div>

@@ -35,11 +35,35 @@ def calcular_rentabilidad(precio_venta, ingredientes):
 def producto_mas_rentable(productos):
     return max(productos, key=lambda x: x['rentabilidad'])
 
+# Función para vender un producto
+def vender_producto(producto_id):
+    cursor = mysql.connection.cursor()
+    cursor.execute("""
+        SELECT i.nombre, i.cantidad
+        FROM ingredientes i
+        JOIN producto_ingredientes pi ON i.id = pi.ingrediente_id
+        WHERE pi.producto_id = %s
+    """, (producto_id,))
+    ingredientes = cursor.fetchall()
+
+    for ingrediente in ingredientes:
+        if ingrediente[1] <= 0:
+            raise ValueError(f"{ingrediente[0]}")
+
+    # Actualizar la cantidad de los ingredientes
+    for ingrediente in ingredientes:
+        cursor.execute("""
+            UPDATE ingredientes
+            SET cantidad = cantidad - 1
+            WHERE nombre = %s
+        """, (ingrediente[0],))
+    mysql.connection.commit()
+
 @app.route('/')
 def index():
     cursor = mysql.connection.cursor()
     cursor.execute("""
-        SELECT p.nombre AS producto, GROUP_CONCAT(i.nombre) AS ingredientes
+        SELECT p.id, p.nombre AS producto, GROUP_CONCAT(i.nombre) AS ingredientes
         FROM productos p
         JOIN producto_ingredientes pi ON p.id = pi.producto_id
         JOIN ingredientes i ON pi.ingrediente_id = i.id
@@ -113,6 +137,14 @@ def producto_mas_rentable_route():
     mas_rentable = producto_mas_rentable(productos_dict)
     
     return render_template('resultado_mas_rentable.html', producto=mas_rentable['nombre'])
+
+@app.route('/vender/<int:producto_id>', methods=['POST'])
+def vender_route(producto_id):
+    try:
+        vender_producto(producto_id)
+        return "¡Vendido!"
+    except ValueError as e:
+        return f"¡Oh no! Nos hemos quedado sin {e}"
 
 if __name__ == '__main__':
     app.run(debug=True)

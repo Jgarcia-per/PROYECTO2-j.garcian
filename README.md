@@ -19,3 +19,10 @@ Para crear un entorno virtual, siga los pasos que se indican a continuación:
     ```bash
     source env/bin/activate
     ```
+
+<h3 align="left">variable necesarias</h3>
+
+```bash
+$env:FLASK_APP = "app.py"
+$env:FLASK_ENV = "development"
+```
