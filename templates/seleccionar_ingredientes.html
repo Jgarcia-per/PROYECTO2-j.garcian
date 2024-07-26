@@ -1,56 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seleccionar Ingredientes</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <h1>Selecciona Ingredientes</h1>
-    <form action="{{ url_for('verificar_ingredientes') }}" method="POST">
+{% extends "base.html" %}
+
+{% block title %}Seleccionar Ingredientes{% endblock %}
+
+{% block content %}
+<div class="button-black">
+    <a href="{{ url_for('index') }}" class="button-forms">Volver al Menú Principal</a>
+</div>
+<h1>Selecciona Ingredientes</h1>
+<form action="{{ url_for('verificar_ingredientes') }}" method="POST">
         {% for ingrediente in ingredientes %}
         <div>
-            <input type="checkbox" id="ingrediente{{ ingrediente[0] }}" name="ingredientes" value="{{ ingrediente[0] }}">
-            <label for="ingrediente{{ ingrediente[0] }}">{{ ingrediente[1] }} ({{ ingrediente[2] }} calorías, Vegetariano: {{ 'Sí' if ingrediente[3] else 'No' }})</label>
+            <input type="checkbox" id="ingrediente{{ ingrediente.id }}" name="ingredientes" value="{{ ingrediente.id }}">
+            <label for="ingrediente{{ ingrediente.id }}">{{ ingrediente.nombre }} ({{ ingrediente.calorias }} calorías, Vegetariano: {{ 'Sí' if ingrediente.vegetariano else 'No' }})</label>
         </div>
         {% endfor %}
-        <button type="submit">Verificar si es sano</button>
+        <div class="button-container">
+            <button type="submit" class="button-forms">Verificar si es sano</button>
+        </div>
     </form>
     <form action="{{ url_for('contar_calorias_route') }}" method="POST">
         {% for ingrediente in ingredientes %}
         <div>
-            <input type="checkbox" id="ingrediente_calorias{{ ingrediente[0] }}" name="ingredientes" value="{{ ingrediente[0] }}">
-            <label for="ingrediente_calorias{{ ingrediente[0] }}">{{ ingrediente[1] }} ({{ ingrediente[2] }} calorías, Vegetariano: {{ 'Sí' if ingrediente[3] else 'No' }})</label>
+            <input type="checkbox" id="ingrediente_calorias{{ ingrediente.id }}" name="ingredientes" value="{{ ingrediente.id }}">
+            <label for="ingrediente_calorias{{ ingrediente.id }}">{{ ingrediente.nombre }} ({{ ingrediente.calorias }} calorías, Vegetariano: {{ 'Sí' if ingrediente.vegetariano else 'No' }})</label>
         </div>
         {% endfor %}
-        <button type="submit">Contar Calorías</button>
+        <div class="button-container">
+            <button type="submit" class="button-forms">Contar Calorías</button>
+        </div>
     </form>
+    
     <form action="{{ url_for('calcular_costo_route') }}" method="POST">
         {% for ingrediente in ingredientes %}
         <div>
-            <input type="checkbox" id="ingrediente_costo{{ ingrediente[0] }}" name="ingredientes" value="{{ ingrediente[0] }}">
-            <label for="ingrediente_costo{{ ingrediente[0] }}">{{ ingrediente[1] }} ({{ ingrediente[4] }} costo)</label>
+            <input type="checkbox" id="ingrediente_costo{{ ingrediente.id }}" name="ingredientes" value="{{ ingrediente.id }}">
+            <label for="ingrediente_costo{{ ingrediente.id }}">{{ ingrediente.nombre }} ({{ ingrediente.costo }} costo)</label>
         </div>
         {% endfor %}
-        <button type="submit">Calcular Costo</button>
+        <div class="button-container">
+            <button type="submit" class="button-forms">Calcular Costo</button>
+        </div>
     </form>
+    
     <form action="{{ url_for('calcular_rentabilidad_route') }}" method="POST">
         <label for="precio_venta">Precio de Venta:</label>
         <input type="number" id="precio_venta" name="precio_venta" step="0.01" required>
         {% for ingrediente in ingredientes %}
         <div>
-            <input type="checkbox" id="ingrediente_rentabilidad{{ ingrediente[0] }}" name="ingredientes" value="{{ ingrediente[0] }}">
-            <label for="ingrediente_rentabilidad{{ ingrediente[0] }}">{{ ingrediente[1] }} ({{ ingrediente[4] }} costo)</label>
+            <input type="checkbox" id="ingrediente_rentabilidad{{ ingrediente.id }}" name="ingredientes" value="{{ ingrediente.id }}">
+            <label for="ingrediente_rentabilidad{{ ingrediente.id }}">{{ ingrediente.nombre }} ({{ ingrediente.costo }} costo)</label>
         </div>
         {% endfor %}
-        <button type="submit">Calcular Rentabilidad</button>
+        <div class="button-container">
+            <button type="submit" class="button-forms">Calcular Rentabilidad</button>
+        </div>
     </form>
+    
     <form action="{{ url_for('producto_mas_rentable_route') }}" method="POST">
         <label for="productos">Productos (nombre,rentabilidad separados por comas):</label>
         <input type="text" id="productos" name="productos" required>
-        <button type="submit">Encontrar Producto Más Rentable</button>
+        <div class="button-container">
+            <button type="submit" class="button-forms">Encontrar Producto Más Rentable</button>
+        </div>
     </form>
-    <a href="{{ url_for('index') }}">Volver al Menú Principal</a>
-</body>
-</html>
+    
+{% endblock %}

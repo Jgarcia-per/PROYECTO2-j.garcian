@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro</title>
+</head>
+<body>
+    <form method="post">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+        <label for="password">Contraseña:</label>
+        <input type="password" id="password" name="password" required>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email">
+        <label for="rol">Rol:</label>
+        <select id="rol" name="rol" required>
+            <option value="user">Usuario</option>
+            <option value="admin">Administrador</option>
+        </select>
+        <button type="submit">Registrar</button>
+    </form>
+</body>
+</html>

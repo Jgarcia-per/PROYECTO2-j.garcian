@@ -1,18 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resultado de Costo</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Resultado Costo</title>
 </head>
 <body>
-    <h1>Resultado de Costo</h1>
-    <div class="result">
-        <p>El costo total de los ingredientes seleccionados es: <strong>{{ total_costo }}</strong></p>
-    </div>
-    <a href="{{ url_for('seleccionar_ingredientes') }}">Volver a seleccionar ingredientes</a>
-    <br>
-    <a href="{{ url_for('index') }}">Volver al Menú Principal</a>
+    <h1>Total del Costo</h1>
+    <p>Total del costo: {{ total_costo }}</p>
+    <a href="{{ url_for('index') }}">Volver a la página de inicio</a>
 </body>
 </html>
