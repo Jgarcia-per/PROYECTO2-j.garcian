@@ -1,12 +1,11 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Resultado Rentabilidad</title>
-</head>
-<body>
-    <h1>Rentabilidad del Producto</h1>
-    <p>Rentabilidad: {{ rentabilidad }}</p>
-    <a href="{{ url_for('index') }}">Volver a la página de inicio</a>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Resultado Rentabilidad{% endblock %}
+
+{% block content %}
+    <body>
+        <h1>Rentabilidad del Producto</h1>
+        <p>Rentabilidad: {{ rentabilidad }}</p>
+        <a href="{{ url_for('index') }}" class="button-black">Volver a la página de inicio</a>
+    </body>
+{% endblock %}

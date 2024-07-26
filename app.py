@@ -20,41 +20,23 @@ principals = Principal(app)
 admin_permission = Permission(RoleNeed('admin'))
 user_permission = Permission(RoleNeed('user'))
 
-@login_manager.user_loader
-def load_user(user_id):
-    return db.session.get(User, int(user_id))
-
-@identity_loaded.connect_via(app)
-def on_identity_loaded(sender, identity):
-    identity.user = current_user
-    if isinstance(current_user, User):
-        identity.provides.add(UserNeed(current_user.id))
-        if current_user.rol:
-            identity.provides.add(RoleNeed(current_user.rol))
-
-# Función para determinar si un ingrediente es sano
 def es_ingrediente_sano(calorias, vegetariano):
     return calorias < 100 or vegetariano
 
-# Función para contar las calorías de un producto
 def contar_calorias(ingredientes):
-    total_calorias = sum(ingredientes) * 0.95
+    total_calorias = sum(ingrediente.calorias for ingrediente in ingredientes) * 0.95
     return round(total_calorias, 2)
 
-# Función para calcular el costo de un producto
 def calcular_costo(ingredientes):
-    return round(sum(ingrediente['precio'] for ingrediente in ingredientes), 2)
+    return round(sum(ingrediente.costo for ingrediente in ingredientes), 2)
 
-# Función para calcular la rentabilidad de un producto
 def calcular_rentabilidad(precio_venta, ingredientes):
     costo = calcular_costo(ingredientes)
     return round(precio_venta - costo, 2)
 
-# Función para encontrar el producto más rentable
 def producto_mas_rentable(productos):
     return max(productos, key=lambda x: x['rentabilidad'])
 
-# Función para vender un producto
 def vender_producto(producto_id):
     producto_ingredientes = ProductoIngrediente.query.filter_by(producto_id=producto_id).all()
     for pi in producto_ingredientes:
@@ -66,6 +48,18 @@ def vender_producto(producto_id):
         ingrediente = Ingrediente.query.get(pi.ingrediente_id)
         ingrediente.cantidad -= 1
         db.session.commit()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
+
+@identity_loaded.connect_via(app)
+def on_identity_loaded(sender, identity):
+    identity.user = current_user
+    if isinstance(current_user, User):
+        identity.provides.add(UserNeed(current_user.id))
+        if current_user.rol:
+            identity.provides.add(RoleNeed(current_user.rol))
 
 # Ruta de registro
 @app.route('/register', methods=['GET', 'POST'])
@@ -113,21 +107,20 @@ def logout():
     return redirect(url_for('index'))
 
 # Ruta para la página de inicio
-@app.route('/')
+@app.route('/index')
+@login_required
 def index():
-    producto = Producto.query.all()
-    return render_template('index.html', productos=producto, user=current_user)
+    ingredientes = Ingrediente.query.all()
+    return render_template('index.html', ingredientes=ingredientes, user=current_user)
 
 # Ruta para seleccionar ingredientes
 @app.route('/seleccionar_ingredientes')
-@login_required
 def seleccionar_ingredientes():
     ingredientes = Ingrediente.query.all()
     return render_template('seleccionar_ingredientes.html', ingredientes=ingredientes)
 
 # Ruta para verificar ingredientes
 @app.route('/verificar_ingredientes', methods=['POST'])
-@login_required
 def verificar_ingredientes():
     ingredientes_ids = request.form.getlist('ingredientes')
     ingredientes = Ingrediente.query.filter(Ingrediente.id.in_(ingredientes_ids)).all()
@@ -141,7 +134,6 @@ def verificar_ingredientes():
 
 # Ruta para contar calorías
 @app.route('/contar_calorias', methods=['POST'])
-@login_required
 def contar_calorias_route():
     ingredientes_ids = request.form.getlist('ingredientes')
     ingredientes = Ingrediente.query.filter(Ingrediente.id.in_(ingredientes_ids)).all()
@@ -153,7 +145,6 @@ def contar_calorias_route():
 
 # Ruta para calcular el costo
 @app.route('/calcular_costo', methods=['POST'])
-@login_required
 def calcular_costo_route():
     ingredientes_ids = request.form.getlist('ingredientes')
     ingredientes = Ingrediente.query.filter(Ingrediente.id.in_(ingredientes_ids)).all()
@@ -165,7 +156,6 @@ def calcular_costo_route():
 
 # Ruta para calcular rentabilidad
 @app.route('/calcular_rentabilidad', methods=['POST'])
-@login_required
 def calcular_rentabilidad_route():
     precio_venta = float(request.form.get('precio_venta'))
     ingredientes_ids = request.form.getlist('ingredientes')
@@ -178,7 +168,6 @@ def calcular_rentabilidad_route():
 
 # Ruta para encontrar el producto más rentable
 @app.route('/producto_mas_rentable', methods=['POST'])
-@login_required
 def producto_mas_rentable_route():
     productos = request.form.getlist('productos')
     productos_dict = [{'nombre': p.split(',')[0], 'rentabilidad': float(p.split(',')[1])} for p in productos]
@@ -188,7 +177,6 @@ def producto_mas_rentable_route():
 
 # Ruta para vender producto
 @app.route('/vender/<int:producto_id>', methods=['POST'])
-@login_required
 def vender_route(producto_id):
     try:
         vender_producto(producto_id)
@@ -209,6 +197,8 @@ def admin():
 @user_permission.require(http_exception=403)
 def user():
     return "¡Bienvenido, Usuario!"
+
+# Define otras rutas de tu aplicación aquí
 
 if __name__ == '__main__':
     app.run(debug=True)
