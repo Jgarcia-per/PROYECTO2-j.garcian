@@ -9,6 +9,8 @@ class Ingrediente(db.Model):
     nombre = db.Column(db.String(100))
     calorias = db.Column(db.Integer)
     vegetariano = db.Column(db.Boolean)
+    costo = db.Column(db.Float)
+    cantidad = db.Column(db.Integer)
 
 class Producto(db.Model):
     __tablename__ = 'productos'

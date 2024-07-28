@@ -26,3 +26,15 @@ Para crear un entorno virtual, siga los pasos que se indican a continuación:
 $env:FLASK_APP = "app.py"
 $env:FLASK_ENV = "development"
 ```
+
+<h3 align="left">Ejecutar proyecto</h3>
+
+Para poder ejecutar el proyecto de manera local, para acceder desde navegador ejecute
+```bash
+python app.py
+```
+
+Para poder ejecuta el proyecto de manera local, para acceder desde postman ejecute
+```bash
+python api.py
+```
