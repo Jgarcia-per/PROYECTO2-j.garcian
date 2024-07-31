@@ -1,15 +1,51 @@
 from flask import Flask, request, jsonify
 from flask_restful import Resource, Api
-from models.model import db, Ingrediente, Producto, ProductoIngrediente
-from app import contar_calorias, calcular_rentabilidad, calcular_costo, vender_producto, es_ingrediente_sano
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from models.model import db, Ingrediente, Producto, ProductoIngrediente, User
 
 app = Flask(__name__)
 api = Api(app)
-app.config.from_object('config.Config')
+
+# Configuración de la base de datos
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1027150930Juan*@localhost/heladeria'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['JWT_SECRET_KEY'] = 'super-secret-key'  # Cambia esto por una clave secreta más segura
 
 db.init_app(app)
+jwt = JWTManager(app)
+
+# Funciones necesarias
+def es_ingrediente_sano(calorias, vegetariano):
+    return calorias < 100 or vegetariano
+
+def contar_calorias(ingredientes):
+    total_calorias = sum(ingrediente.calorias for ingrediente in ingredientes) * 0.95
+    return round(total_calorias, 2)
+
+def calcular_costo(ingredientes):
+    return round(sum(ingrediente.costo for ingrediente in ingredientes), 2)
+
+def calcular_rentabilidad(precio_venta, ingredientes):
+    costo = calcular_costo(ingredientes)
+    return round(precio_venta - costo, 2)
+
+def producto_mas_rentable(productos):
+    return max(productos, key=lambda x: x['rentabilidad'])
+
+def vender_producto(producto_id):
+    producto_ingredientes = ProductoIngrediente.query.filter_by(producto_id=producto_id).all()
+    for pi in producto_ingredientes:
+        ingrediente = Ingrediente.query.get(pi.ingrediente_id)
+        if ingrediente.cantidad <= 0:
+            raise ValueError(f"{ingrediente.nombre}")
+    
+    for pi in producto_ingredientes:
+        ingrediente = Ingrediente.query.get(pi.ingrediente_id)
+        ingrediente.cantidad -= 1
+        db.session.commit()
 
 class IngredienteResource(Resource):
+    @jwt_required()
     def get(self, id=None, nombre=None):
         if id:
             ingrediente = Ingrediente.query.get(id)
@@ -45,6 +81,7 @@ class IngredienteResource(Resource):
             'cantidad': ingrediente.cantidad
         } for ingrediente in ingredientes])
 
+    @jwt_required()
     def post(self):
         data = request.get_json()
         nuevo_ingrediente = Ingrediente(
@@ -58,6 +95,7 @@ class IngredienteResource(Resource):
         db.session.commit()
         return {'message': 'Ingrediente creado con éxito'}, 201
 
+    @jwt_required()
     def put(self, id):
         data = request.get_json()
         ingrediente = Ingrediente.query.get(id)
@@ -71,6 +109,7 @@ class IngredienteResource(Resource):
         db.session.commit()
         return {'message': 'Ingrediente actualizado con éxito'}, 200
 
+    @jwt_required()
     def delete(self, id):
         ingrediente = Ingrediente.query.get(id)
         if not ingrediente:
@@ -80,6 +119,7 @@ class IngredienteResource(Resource):
         return {'message': 'Ingrediente eliminado con éxito'}, 200
 
 class ProductoResource(Resource):
+    @jwt_required()
     def get(self, id=None, nombre=None):
         if id:
             producto = Producto.query.get(id)
@@ -117,6 +157,7 @@ class ProductoResource(Resource):
             } for i in ProductoIngrediente.query.filter_by(producto_id=producto.id).all()]
         } for producto in productos])
 
+    @jwt_required()
     def post(self):
         data = request.get_json()
         nuevo_producto = Producto(nombre=data['nombre'])
@@ -131,6 +172,7 @@ class ProductoResource(Resource):
         db.session.commit()
         return {'message': 'Producto creado con éxito'}, 201
 
+    @jwt_required()
     def put(self, id):
         data = request.get_json()
         producto = Producto.query.get(id)
@@ -148,6 +190,7 @@ class ProductoResource(Resource):
         db.session.commit()
         return {'message': 'Producto actualizado con éxito'}, 200
 
+    @jwt_required()
     def delete(self, id):
         producto = Producto.query.get(id)
         if not producto:
@@ -158,6 +201,7 @@ class ProductoResource(Resource):
         return {'message': 'Producto eliminado con éxito'}, 200
 
 class ProductoCaloriasResource(Resource):
+    @jwt_required()
     def get(self, id):
         producto = Producto.query.get(id)
         if not producto:
@@ -167,6 +211,7 @@ class ProductoCaloriasResource(Resource):
         return jsonify({'id': producto.id, 'nombre': producto.nombre, 'calorias': calorias})
 
 class ProductoRentabilidadResource(Resource):
+    @jwt_required()
     def get(self, id):
         producto = Producto.query.get(id)
         if not producto:
@@ -178,6 +223,7 @@ class ProductoRentabilidadResource(Resource):
         return jsonify({'id': producto.id, 'nombre': producto.nombre, 'rentabilidad': rentabilidad})
 
 class ProductoCostoResource(Resource):
+    @jwt_required()
     def get(self, id):
         producto = Producto.query.get(id)
         if not producto:
@@ -187,6 +233,7 @@ class ProductoCostoResource(Resource):
         return jsonify({'id': producto.id, 'nombre': producto.nombre, 'costo': costo})
 
 class ProductoVenderResource(Resource):
+    @jwt_required()
     def post(self, id):
         try:
             vender_producto(id)
@@ -195,6 +242,7 @@ class ProductoVenderResource(Resource):
             return {'message': f'No se pudo vender el producto: {e}'}, 400
 
 class IngredienteSanoResource(Resource):
+    @jwt_required()
     def get(self, id):
         ingrediente = Ingrediente.query.get(id)
         if not ingrediente:
@@ -203,6 +251,7 @@ class IngredienteSanoResource(Resource):
         return jsonify({'id': ingrediente.id, 'nombre': ingrediente.nombre, 'sano': sano})
 
 class ProductoReabastecerResource(Resource):
+    @jwt_required()
     def post(self, id):
         data = request.get_json()
         cantidad = data.get('cantidad', 0)
@@ -214,6 +263,7 @@ class ProductoReabastecerResource(Resource):
         return {'message': 'Producto reabastecido con éxito'}, 200
 
 class ProductoRenovarResource(Resource):
+    @jwt_required()
     def post(self, id):
         data = request.get_json()
         nuevo_nombre = data.get('nombre')
@@ -224,15 +274,28 @@ class ProductoRenovarResource(Resource):
         if nuevo_nombre:
             producto.nombre = nuevo_nombre
         ProductoIngrediente.query.filter_by(producto_id=id).delete()
-        for ingrediente_id in nuevo_ingredientes:
-            nuevo_producto_ingrediente = ProductoIngrediente(
-                producto_id=id,
-                ingrediente_id=ingrediente_id
-            )
-            db.session.add(nuevo_producto_ingrediente)
+        if nuevo_ingredientes:
+            for ingrediente_id in nuevo_ingredientes:
+                nuevo_producto_ingrediente = ProductoIngrediente(
+                    producto_id=id,
+                    ingrediente_id=ingrediente_id
+                )
+                db.session.add(nuevo_producto_ingrediente)
         db.session.commit()
         return {'message': 'Producto renovado con éxito'}, 200
 
+class LoginResource(Resource):
+    def post(self):
+        data = request.get_json()
+        nombre = data.get('nombre')
+        password = data.get('password')
+        user = User.query.filter_by(nombre=nombre).first()
+        if user and bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+            access_token = create_access_token(identity=user.id)
+            return jsonify(access_token=access_token)
+        return {'message': 'Nombre de usuario o contraseña incorrectos'}, 401
+
+api.add_resource(LoginResource, '/login')
 api.add_resource(IngredienteResource, '/ingredientes', '/ingredientes/<int:id>')
 api.add_resource(ProductoResource, '/productos', '/productos/<int:id>')
 api.add_resource(ProductoCaloriasResource, '/productos/<int:id>/calorias')
